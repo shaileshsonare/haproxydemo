@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAProxy Professional Technical Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --accent-primary: #2563eb;
+            --accent-secondary: #4f46e5;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --code-bg: #f1f5f9;
+            --code-text: #1e293b;
+            --border-color: #e2e8f0;
+            --sidebar-width: 300px;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        nav {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            height: 100vh;
+            position: fixed;
+            padding: 2rem 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        nav .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 2.5rem;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        nav .logo::before {
+            content: '';
+            width: 8px;
+            height: 24px;
+            background: var(--accent-primary);
+            border-radius: 4px;
+        }
+
+        .nav-group {
+            margin-bottom: 2rem;
+        }
+
+        .nav-group-title {
+            padding: 0 2rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        nav a {
+            color: var(--text-main);
+            text-decoration: none;
+            padding: 0.625rem 2rem;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: block;
+            border-left: 3px solid transparent;
+        }
+
+        nav a:hover {
+            background: #f1f5f9;
+            color: var(--accent-primary);
+        }
+
+        nav a.active {
+            background: #eff6ff;
+            color: var(--accent-primary);
+            border-left-color: var(--accent-primary);
+        }
+
+        /* Main Content Styling */
+        main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 4rem 6rem;
+            max-width: 1300px;
+        }
+
+        header {
+            margin-bottom: 4rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.125rem;
+        }
+
+        section {
+            margin-bottom: 5rem;
+            scroll-margin-top: 2rem;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+
+        p {
+            margin-bottom: 1.25rem;
+            color: var(--text-main);
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            background: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+            color: var(--accent-secondary);
+        }
+
+        pre {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.875rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+        }
+
+        .param-name {
+            font-weight: 600;
+            font-family: 'Fira Code', monospace;
+            color: var(--accent-primary);
+            font-size: 0.9rem;
+        }
+
+        .param-desc {
+            font-size: 0.9375rem;
+            color: var(--text-muted);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-right: 0.5rem;
+        }
+
+        .tag-global { background: #fee2e2; color: #991b1b; }
+        .tag-frontend { background: #dcfce7; color: #166534; }
+        .tag-backend { background: #dbeafe; color: #1e40af; }
+
+        .visualization {
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            padding: 3rem;
+            margin: 2rem 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .chart {
+            display: flex;
+            align-items: flex-end;
+            height: 200px;
+            gap: 3rem;
+        }
+
+        .bar-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .bar {
+            width: 100%;
+            background: var(--accent-primary);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: height 0.5s ease;
+        }
+
+        .bar-val {
+            position: absolute;
+            top: -25px;
+            width: 100%;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .label {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .sub-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .status-pill::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9375rem;
+        }
+
+        @media (max-width: 1024px) {
+            nav { width: 240px; }
+            main { margin-left: 240px; padding: 3rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">HAProxy Docs</div>
+        
+        <div class="nav-group">
+            <div class="nav-group-title">Environment</div>
+            <a href="#environment">Environment Specs</a>
+            <a href="#deployment-commands">Deployment Commands</a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-group-title">Configuration</div>
+            <a href="#global-settings">Global & Defaults</a>
+            <a href="#proxy-logic">Proxy Logic</a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-group-title">Analysis</div>
+            <a href="#traffic-flow">Traffic Flow Analysis</a>
+            <a href="#health-checks">Health & Monitoring</a>
+            <a href="#logging">Logging & Debugging</a>
+        </div>
+    </nav>
+
+    <main>
+        <header>
+            <h1>Load Balancing Analysis</h1>
+            <p class="subtitle">Detailed analysis of load balancing configuration and traffic distribution</p>
+        </header>
+
+        <section id="executive-summary">
+            <h2>Executive Summary</h2>
+            <div class="section-card">
+                <p>This document provides a comprehensive breakdown of the HAProxy configuration deployed for the <code>node_backend</code> cluster. The primary objective was to implement a <strong>sequential overflow</strong> strategy using the <code>first</code> balancing algorithm.</p>
+                <p>Testing with 30 concurrent requests successfully validated that HAProxy respects the <code>maxconn</code> limits of each individual server, cascading traffic to subsequent nodes only when previous ones are saturated.</p>
+            </div>
+        </section>
+
+        <section id="deployment-commands">
+            <h2>Deployment Commands</h2>
+            <div class="section-card">
+                <p>The following terminal commands were executed to initialize the backend node cluster with their respective port assignments and identities:</p>
+                
+                <div class="nav-group-title" style="margin: 1.5rem 0 0.5rem 0; padding: 0; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Node 1 Instance</div>
+                <pre style="margin-bottom: 1.5rem;">
+PORT=8081 SERVER_NAME=node1 node app.js
+# Output: node1 listening on 8081</pre>
+
+                <div class="nav-group-title" style="margin: 1.5rem 0 0.5rem 0; padding: 0; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Node 2 Instance</div>
+                <pre style="margin-bottom: 1.5rem;">
+PORT=8082 SERVER_NAME=node2 node app.js
+# Output: node2 listening on 8082</pre>
+
+                <div class="nav-group-title" style="margin: 1.5rem 0 0.5rem 0; padding: 0; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Node 3 Instance</div>
+                <pre>
+PORT=8085 SERVER_NAME=node3 node app.js
+# Output: node3 listening on 8085</pre>
+
+                <div class="explanation" style="margin-top: 2rem; background: #f8fafc; border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 0.5rem;">
+                    <p style="margin-bottom: 0.75rem; font-weight: 600;">Command Context:</p>
+                    <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.8;">
+                        <li>The <code>PORT</code> variable ensures each instance binds to a unique local port (8081, 8082, 8085).</li>
+                        <li><code>SERVER_NAME</code> is injected into the application to provide identifiable HTTP responses.</li>
+                        <li>Each node runs as a separate process to simulate a distributed environment.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="logging">
+            <h2>Logging & Debugging</h2>
+            <div class="section-card">
+                <p>HAProxy logs provide essential visibility into request routing, connection timing, and backend health. To monitor logs in real-time, use the following command:</p>
+                
+                <pre>sudo tail -f /var/log/haproxy.log</pre>
+
+                <div class="nav-group-title" style="margin: 2rem 0 1rem 0; padding: 0; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Example Log Output (Stats Page Access)</div>
+                <pre style="font-size: 0.8rem; line-height: 1.4;">
+May  8 00:45:55 NL1551 haproxy[19219]: 127.0.0.1:56826 [08/May/2026:00:45:55.834] stats stats/&lt;STATS&gt; 0/0/0/0/0 200 24873 - - LR-- 2/2/0/0/0 0/0 "GET /stats HTTP/1.1"
+May  8 00:46:00 NL1551 haproxy[19219]: 127.0.0.1:56826 [08/May/2026:00:46:00.911] stats stats/&lt;STATS&gt; 0/0/0/0/0 200 24873 - - LR-- 2/2/0/0/0 0/0 "GET /stats HTTP/1.1"
+May  8 00:46:06 NL1551 haproxy[19219]: 127.0.0.1:56826 [08/May/2026:00:46:06.003] stats stats/&lt;STATS&gt; 0/0/0/0/0 200 24873 - - LR-- 1/1/0/0/0 0/0 "GET /stats HTTP/1.1"</pre>
+
+                <div class="explanation" style="margin-top: 2rem; background: #f8fafc; border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 0.5rem;">
+                    <p style="margin-bottom: 0.75rem; font-weight: 600;">How to read HAProxy HTTP logs:</p>
+                    <ul style="margin-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.8;">
+                        <li><code>127.0.0.1:56826</code>: Client IP and source port.</li>
+                        <li><code>[08/May/2026:00:45:55.834]</code>: Precise timestamp of the request.</li>
+                        <li><code>stats stats/&lt;STATS&gt;</code>: Frontend name and Backend/Server name.</li>
+                        <li><code>0/0/0/0/0</code>: Timers (Tq/Tw/Tc/Tr/Tt) in milliseconds.</li>
+                        <li><code>200</code>: HTTP status code returned to the client.</li>
+                        <li><code>LR--</code>: Termination state (L: local session, R: resource limit).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="global-settings">
+            <h2>Global & Default Settings</h2>
+            <div class="section-card">
+                <pre>
+global
+    log /dev/log local0
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin
+    user haproxy
+    group haproxy
+    daemon
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000</pre>
+                
+                <div class="parameter-grid">
+                    <div class="param-name">log</div>
+                    <div class="param-desc">Configures Syslog destination. <code>local0</code> is a standard facility for HAProxy logs.</div>
+
+                    <div class="param-name">chroot</div>
+                    <div class="param-desc">Security feature that restricts the HAProxy process to a specific directory to minimize the impact of a potential breach.</div>
+
+                    <div class="param-name">stats socket</div>
+                    <div class="param-desc">Creates a UNIX socket for runtime management. <code>expose-fd listeners</code> allows seamless reloads without dropping connections.</div>
+
+                    <div class="param-name">mode http</div>
+                    <div class="param-desc">Enables Layer 7 load balancing, allowing HAProxy to inspect and manipulate HTTP headers and cookies.</div>
+
+                    <div class="param-name">timeout connect</div>
+                    <div class="param-desc">Maximum time (5s) HAProxy will wait for a successful connection to a backend server.</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="proxy-logic">
+            <h2>Proxy Configuration Logic</h2>
+            <div class="section-card">
+                <pre>
+frontend node_frontend
+    bind *:8083
+    default_backend node_backend
+
+backend node_backend
+    balance first
+    cookie SERVERID insert indirect nocache
+    option httpchk GET /health
+
+    server node1 127.0.0.1:8081 maxconn 5 cookie s1 check
+    server node2 127.0.0.1:8082 maxconn 10 cookie s2 check
+    server node3 127.0.0.1:8085 maxconn 15 cookie s3 check</pre>
+
+                <div class="parameter-grid">
+                    <div class="param-name">balance first</div>
+                    <div class="param-desc">Algorithm that selects the first available server. This server is used until it reaches its <code>maxconn</code> limit, then traffic overflows to the next server.</div>
+
+                    <div class="param-name">cookie SERVERID</div>
+                    <div class="param-desc">Enables session persistence. <code>insert</code> adds a cookie to the response; <code>indirect</code> removes it from the request before passing to the server.</div>
+
+                    <div class="param-name">option httpchk</div>
+                    <div class="param-desc">Enables HTTP-based health checks. HAProxy sends a GET request to <code>/health</code> and expects a 2xx or 3xx response.</div>
+
+                    <div class="param-name">maxconn</div>
+                    <div class="param-desc">Crucial parameter for the <code>first</code> algorithm. It defines the hard concurrency limit for each server node.</div>
+
+                    <div class="param-name">check</div>
+                    <div class="param-desc">Enables active health monitoring for the specific server entry.</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="traffic-flow">
+            <h2>Traffic Flow Analysis</h2>
+            <div class="section-card">
+                <p>The following chart illustrates the distribution of <strong>30 concurrent requests</strong>. Note the 10-second latency introduced in the backend (via <code>app.js</code>), which forced HAProxy to utilize the overflow mechanism.</p>
+                
+                <div class="visualization">
+                    <div class="chart">
+                        <div class="bar-wrap">
+                            <div class="bar" style="height: 33%;" data-value="5">
+                                <div class="bar-val">5</div>
+                            </div>
+                            <span class="label">node1</span>
+                            <span class="sub-label">Limit: 5</span>
+                        </div>
+                        <div class="bar-wrap">
+                            <div class="bar" style="height: 66%; background: var(--accent-secondary);" data-value="10">
+                                <div class="bar-val">10</div>
+                            </div>
+                            <span class="label">node2</span>
+                            <span class="sub-label">Limit: 10</span>
+                        </div>
+                        <div class="bar-wrap">
+                            <div class="bar" style="height: 100%; background: #4338ca;" data-value="15">
+                                <div class="bar-val">15</div>
+                            </div>
+                            <span class="label">node3</span>
+                            <span class="sub-label">Limit: 15</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p><strong>Technical Observation:</strong> The <code>first</code> algorithm effectively prioritized <code>node1</code>. Once 5 concurrent connections were established, HAProxy correctly routed the next 10 requests to <code>node2</code>, and the final 15 to <code>node3</code>. This validates the deterministic behavior of the configuration.</p>
+            </div>
+        </section>
+
+        <section id="health-checks">
+            <h2>Health & Monitoring</h2>
+            <div class="section-card">
+                <p>All nodes currently report a <code>Healthy</code> status via the Layer 7 health check endpoint.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Server</th>
+                            <th>Address</th>
+                            <th>Status</th>
+                            <th>L7 Check</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>node1</strong></td>
+                            <td><code>127.0.0.1:8081</code></td>
+                            <td><span class="status-pill">Active</span></td>
+                            <td><code>L7OK / 200</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>node2</strong></td>
+                            <td><code>127.0.0.1:8082</code></td>
+                            <td><span class="status-pill">Active</span></td>
+                            <td><code>L7OK / 200</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>node3</strong></td>
+                            <td><code>127.0.0.1:8085</code></td>
+                            <td><span class="status-pill">Active</span></td>
+                            <td><code>L7OK / 200</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="margin-top: 2rem;">Real-time metrics can be monitored via the Stats interface at:</p>
+                <code style="display: block; padding: 1rem; text-align: center; font-size: 1rem; background: #eff6ff;">http://localhost:8404/stats</code>
+            </div>
+        </section>
+
+        <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.875rem; text-align: center;">
+            Professional HAProxy Documentation | Generated on 2026-05-08
+        </footer>
+    </main>
+
+    <script>
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('nav a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 150) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
