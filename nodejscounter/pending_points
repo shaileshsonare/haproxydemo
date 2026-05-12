@@ -1,0 +1,27 @@
+check only with http, don't use redis for now
+
+haproxy node health should be accessible from internal office network
+
+check tpc connection also 
+
+try to custom log in error
+
+add least connection logic on haproxy 
+
+corosync & pacemaker setup
+
+
+65535 ports limit on node
+
+https://www.youtube.com/watch?v=z51qJg31s7k
+
+HAProxy connection handling in the face of node failures
+
+TIME_WAIT
+ESTABLISHED
+
+ 1001  netstat -antp | less
+ 1002  ss | less
+ 1003  history
+[root@lb ~]# 
+

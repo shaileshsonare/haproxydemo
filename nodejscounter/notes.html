@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAProxy Conditional Routing | Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --secondary: #475569;
+            --accent: #0891b2;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Sidebar */
+        nav {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            padding: 2.5rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        nav .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        nav ul {
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        nav ul li a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+        }
+
+        nav ul li a:hover, nav ul li a.active {
+            color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            margin-left: 280px;
+            padding: 4rem 5rem;
+            max-width: 1300px;
+        }
+
+        .header-section {
+            margin-bottom: 4rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .header-section span {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-section h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -1.5px;
+        }
+
+        section {
+            margin-bottom: 6rem;
+            scroll-margin-top: 3rem;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            margin-bottom: 2rem;
+            color: var(--text);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        p {
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            font-size: 1.05rem;
+        }
+
+        .diagram-outer {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+
+        /* Code Styling */
+        pre {
+            background: #f1f5f9 !important;
+            border-radius: 8px !important;
+            padding: 1.5rem !important;
+            border: 1px solid var(--border) !important;
+            margin: 1.5rem 0 !important;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 0.9rem !important;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        footer {
+            margin-top: 8rem;
+            padding: 4rem 0;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Tech List */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tech-item {
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+        }
+
+        .tech-item h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .tech-item p {
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 1024px) {
+            nav { display: none; }
+            main { margin-left: 0; padding: 2rem; }
+            .header-section h1 { font-size: 2.25rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            System Docs
+        </div>
+        <ul>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#sequence">Traffic Flow</a></li>
+            <li><a href="#logic">Routing Logic</a></li>
+            <li><a href="#implementation">HTTP Logic</a></li>
+            <li><a href="#health-checks">Health & Fallback</a></li>
+            <li><a href="#logging">Custom Logging</a></li>
+            <li><a href="#redis">Redis Optimization</a></li>
+            <li><a href="#configuration">Configuration</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="header-section">
+            <span>Engineering Documentation</span>
+            <h1>HAProxy Conditional Routing</h1>
+        </div>
+
+        <section id="architecture">
+            <div class="badge">Architecture</div>
+            <h2>System Overview</h2>
+            <div class="card">
+                <p>This document details the professional implementation of dynamic, state-aware load balancing using HAProxy Community Edition. The architecture utilizes Lua extensions to intercept requests and perform real-time lookups against external state providers.</p>
+                
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <h4>Frontend</h4>
+                        <p>HAProxy 2.4+ acting as the entry gateway on port 8085.</p>
+                    </div>
+                    <div class="tech-item">
+                        <h4>Logic Layer</h4>
+                        <p>Lua 5.3 script using non-blocking TCP sockets for state checks.</p>
+                    </div>
+                    <div class="tech-item">
+                        <h4>Performance</h4>
+                        <p>Optimized Redis lookups using line-based RESP parsing.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sequence">
+            <div class="badge">Interaction</div>
+            <h2>Traffic Flow Diagram</h2>
+            <div class="card">
+                <p>The following sequence diagram outlines the synchronous request/response lifecycle, showing how the Lua action blocks the request just long enough to determine the optimal backend.</p>
+                <div class="diagram-outer">
+                    <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant U as Client
+    participant H as HAProxy
+    participant L as Lua Extension
+    participant A as State API / Redis
+    participant B as Node Backend
+
+    U->>H: GET / (Request)
+    H->>L: Execute Routing Action
+    L->>A: TCP Connection & Command
+    A-->>L: State Data (Count/Status)
+    Note over L: Logic Execution
+    L->>H: Set txn.target_node
+    H->>B: Proxy to Resolved Node
+    B-->>U: HTTP 200 OK
+                    </pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="logic">
+            <div class="badge">Logic</div>
+            <h2>Routing Logic Flow</h2>
+            <div class="card">
+                <p>The logic is designed for resilience. In the event of a state-provider failure, the system falls back to a stable default to prevent service disruption.</p>
+                <div class="diagram-outer">
+                    <pre class="mermaid">
+graph TD
+    In([Client Request]) --> Action[Lua Routing Action]
+    Action --> Conn{Provider Connected?}
+    Conn -- No --> Default[Route to node2]
+    Conn -- Yes --> Fetch[Fetch State Data]
+    Fetch --> Parity{Condition Met?}
+    Parity -- Yes --> Node1[Route to node1]
+    Parity -- No --> Node2[Route to node2]
+    Node1 --> Exit([Forward Request])
+    Node2 --> Exit
+    Default --> Exit
+    
+    style Action stroke:#2563eb,stroke-width:2px
+    style Conn stroke:#e2e8f0
+    style Node1 fill:#eff6ff,stroke:#2563eb
+    style Node2 fill:#eff6ff,stroke:#2563eb
+                    </pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="implementation">
+            <div class="badge">HTTP Implementation</div>
+            <h2>HTTP-Based Routing</h2>
+            <div class="card">
+                <p>Routing based on an external HTTP API response.</p>
+                <pre><code class="language-lua">
+core.register_action("do_routing", { "http-req" }, function(txn)
+    local target = "node2" -- default fallback
+    local tcp = core.tcp()
+    
+    if tcp:connect("127.0.0.1", 8081) then
+        tcp:send("GET /count HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
+
+        -- Parse logic...
+        if count % 2 ~= 0 then
+            target = "node1"
+        else
+            target = "node2"
+        end
+    end
+
+    -- Health check logic
+    local s_name = target == "node1" and "s1" or "s2"
+    if not is_node_up(target, s_name) then
+        core.Alert("ROUTING LOG: " .. target .. " is DOWN. Triggering fallback.")
+        target = (target == "node1") and "node2" or "node1"
+    else
+        core.Info("ROUTING LOG: " .. target .. " is UP. Routing successfully.")
+    end
+
+    txn.set_var(txn, "txn.target_node", target)
+end)
+                </code></pre>
+            </div>
+        </section>
+
+    <section id="health-checks">
+        <div class="badge">Resilience</div>
+        <h2>Health Checks & Dynamic Fallback</h2>
+        <div class="card">
+            <p>The Lua script integrates directly with HAProxy's internal health state. If the target node is marked as <code>DOWN</code>, the request is automatically routed to a healthy alternative. Custom logs are emitted via <code>core.Alert</code> and <code>core.Info</code>.</p>
+            <pre><code class="language-lua">
+local function is_node_up(backend_name, server_name)
+    local b = core.backends[backend_name]
+    if b and b.servers[server_name] then
+        local status = b.servers[server_name]:get_stats()["status"]
+        if status and (status == "UP" or status:sub(1, 2) == "UP") then
+            return true
+        end
+    end
+    return false
+end
+
+-- Fallback logic inside routing action:
+if not is_node_up(target, s_name) then
+    core.Alert("ROUTING LOG: " .. target .. " is DOWN. Triggering fallback.")
+    target = (target == "node1") and "node2" or "node1"
+else
+    core.Info("ROUTING LOG: " .. target .. " is UP. Routing successfully.")
+end
+            </code></pre>
+        </div>
+    </section>
+
+    <section id="logging">
+        <div class="badge">Observability</div>
+        <h2>Custom Logging & Monitoring</h2>
+        <div class="card">
+            <p>To capture the custom <code>core.Info</code> and <code>core.Alert</code> logs generated by the Lua script, HAProxy must be configured to send its logs to the system's syslog. Once configured, you can monitor routing decisions and node failures in real-time.</p>
+            
+            <h4 style="color: var(--primary); margin-bottom: 0.5rem; margin-top: 1.5rem;">1. Enable Logging in Configuration</h4>
+            <p style="font-size: 0.95rem;">Add the following directive to the <code>global</code> section of your <code>haproxy.cfg</code>:</p>
+            <pre><code class="language-haproxy">global
+    log /dev/log local0 debug</code></pre>
+
+            <h4 style="color: var(--primary); margin-bottom: 0.5rem; margin-top: 1.5rem;">2. Viewing the Logs</h4>
+            <p style="font-size: 0.95rem;">On Ubuntu, the <code>local0</code> facility is automatically routed to a dedicated HAProxy log file via rsyslog (<code>/etc/rsyslog.d/49-haproxy.conf</code>). Run this command to view the live logs:</p>
+            <pre><code class="language-bash">tail -f /var/log/haproxy.log | grep "ROUTING LOG"</code></pre>
+            <p style="font-size: 0.95rem;">If the dedicated file isn't present, check the main system log: <code>tail -f /var/log/syslog | grep "ROUTING LOG"</code></p>
+        </div>
+    </section>
+
+    <section id="redis">
+            <div class="badge">Redis Optimization</div>
+            <h2>High-Performance Redis Routing</h2>
+            <div class="card">
+                <p>By using <code>tcp:receive("*l")</code>, we read specific RESP lines instead of waiting for a stream end. This optimization significantly reduces latency.</p>
+                <pre><code class="language-lua">
+core.register_action("do_redis_routing", { "http-req" }, function(txn)
+    local tcp = core.tcp()
+    tcp:settimeout(0.1)
+    tcp:connect("127.0.0.1", 6379)
+    
+    -- Redis GET oo_node1_users
+    tcp:send("*2\r\n$3\r\nGET\r\n$14\r\noo_node1_users\r\n")
+
+    -- Optimized: Read specific RESP lines
+    local size_line = tcp:receive("*l")
+    local value_line = tcp:receive("*l")
+    tcp:close()
+
+    local count = tonumber(value_line)
+    if count and count > 10 then
+        txn.set_var(txn, "txn.target_node", "node2")
+    else
+        txn.set_var(txn, "txn.target_node", "node1")
+    end
+end)
+                </code></pre>
+            </div>
+        </section>
+
+        <section id="configuration">
+            <div class="badge">Config</div>
+            <h2>HAProxy Configuration</h2>
+            <div class="card">
+                <p>Configuration of the frontend listener, backend node health checks (<code>check</code>), and a live stats dashboard on port 8404 for monitoring concurrent sessions.</p>
+                <pre><code class="language-haproxy">
+frontend http
+    bind *:8085
+    
+    # Execute the custom Lua action
+    http-request lua.do_routing
+    
+    # Route based on the variable dynamically set by Lua
+    use_backend %[var(txn.target_node)]
+
+backend node1
+    server s1 127.0.0.1:8082 check
+
+backend node2
+    server s2 127.0.0.1:8083 check
+
+listen stats
+    bind *:8404
+    stats enable
+    stats uri /stats
+    stats refresh 5s
+                </code></pre>
+            </div>
+        </section>
+
+        <footer>
+            <div>&copy; 2026 HAProxy Load Balancing Systems</div>
+            <div>Build: 2.4.30-LTS</div>
+        </footer>
+    </main>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'neutral',
+            securityLevel: 'loose',
+            fontFamily: 'Inter',
+            flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-lua.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+</body>
+</html>
